@@ -1558,7 +1558,6 @@ const halfColor = (hexColor) => {
                         await sleep(100);
                     }
                     isAnyGreen = Array.from(isFilamentWindow.querySelectorAll("button.green:not(.cantClick)")).filter(e => e.innerText !== "Trade all").slice(1).length
-                    console.log(Array.from(isFilamentWindow.querySelectorAll("button.green")).filter(e => e.innerText === "Trade all")[0]);
                     Array.from(isFilamentWindow.querySelectorAll("button.green")).filter(e => e.innerText === "Trade all")[0].classList = [`green svelte-ec9kqa ${isAnyGreen ? "can" : "cantClick"}`];
                 }
             })
@@ -1947,13 +1946,20 @@ const halfColor = (hexColor) => {
                     })
                 ]
             })
-            const { devLogEvents } = player.configuration;
-            const devLogEventsText = new Component("span", {
+            const { devLogIncomingEvents, devLogOutgoingEvents } = player.configuration;
+            const devLogIncomingEventsText = new Component("span", {
                 style: {
-                    color: devLogEvents ? "var(--color-green)" : "var(--color-red)",
+                    color: devLogIncomingEvents ? "var(--color-green)" : "var(--color-red)",
                     fontWeight: 600,
                 },
-                innerText: devLogEvents ? "On" : "Off",
+                innerText: devLogIncomingEvents ? "On" : "Off",
+            });
+            const devLogOutgoingEventsText = new Component("span", {
+                style: {
+                    color: devLogOutgoingEvents ? "var(--color-green)" : "var(--color-red)",
+                    fontWeight: 600,
+                },
+                innerText: devLogOutgoingEvents ? "On" : "Off",
             });
             const devSetting = new Component("div", {
                 classList: ["el", "svelte-176ijne"],
@@ -1968,8 +1974,8 @@ const halfColor = (hexColor) => {
                       children: [
                         new Component("div", {
                           children: [
-                              { element: document.createTextNode("Log events to console: ") },
-                              devLogEventsText,
+                              { element: document.createTextNode("Log incoming events to console: ") },
+                              devLogIncomingEventsText,
                           ],
                         }),
                         new Component("a", {
@@ -1991,10 +1997,48 @@ const halfColor = (hexColor) => {
                                   },
                                   innerText: "Toggle",
                                   onclick: () => {
-                                      player.configuration.devLogEvents = !player.configuration.devLogEvents;
-                                      const { devLogEvents } = player.configuration;
-                                      devLogEventsText.element.style.color = devLogEvents ? "var(--color-green)" : "var(--color-red)";
-                                      devLogEventsText.element.innerText = devLogEvents ? "On" : "Off";
+                                      player.configuration.devLogIncomingEvents = !player.configuration.devLogIncomingEvents;
+                                      const { devLogIncomingEvents } = player.configuration;
+                                      devLogIncomingEventsText.element.style.color = devLogIncomingEvents ? "var(--color-green)" : "var(--color-red)";
+                                      devLogIncomingEventsText.element.innerText = devLogIncomingEvents ? "On" : "Off";
+                                  },
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                    new Component("div", {
+                      classList: [ "el", "el-toggler", "svelte-176ijne" ],
+                      children: [
+                        new Component("div", {
+                          children: [
+                              { element: document.createTextNode("Log outgoing events to console: ") },
+                              devLogOutgoingEventsText,
+                          ],
+                        }),
+                        new Component("a", {
+                          style: {
+                              width: "auto",
+                              display: "inline-block",
+                              margin: "0px",
+                              flex: "0 1 auto",
+                          },
+                          children: [
+                              new Component("button", {
+                                  classList: [ "grey", "svelte-ec9kqa" ],
+                                  style: {
+                                      height: "auto",
+                                      padding: "6px 14px",
+                                      fontFamily: "var(--font-family-1)",
+                                      fontSize: "16px",
+                                      boxShadow: "0 10px 15px var(--color-shadow)",
+                                  },
+                                  innerText: "Toggle",
+                                  onclick: () => {
+                                      player.configuration.devLogOutgoingEvents = !player.configuration.devLogOutgoingEvents;
+                                      const { devLogOutgoingEvents } = player.configuration;
+                                      devLogOutgoingEventsText.element.style.color = devLogOutgoingEvents ? "var(--color-green)" : "var(--color-red)";
+                                      devLogOutgoingEventsText.element.innerText = devLogOutgoingEvents ? "On" : "Off";
                                   },
                               }),
                             ],
@@ -3291,8 +3335,8 @@ WebSocket.prototype.send = function(data) {
     } catch (e) {
         // Ignoring errors silently
     }
-    if(!player.configuration.devLogEvents) player.configuration.devLogEvents = false;
-    if(player.configuration.devLogEvents) console.log(data);
+    if(!player.configuration.devLogOutgoingEvents) player.configuration.devLogOutgoingEvents = false;
+    if(player.configuration.devLogOutgoingEvents) console.log(data);
     if(!player.configuration.customEventButtonClicked) return originalSend.call(this, data);
     player.configuration.customEventButtonClicked = false;
     if(!data.indexOf("[\"playerInput\",{\"event\":\"sendGlobalChatMessage\",\"message\":\"\"}]")) console.log("Not right event");
@@ -3351,6 +3395,6 @@ listen(({ data, socket, event }) => {
 
     data = data.substring(0, index) + JSON.stringify(payload);
     event.data = data;
-    if(!player.configuration.devLogEvents) player.configuration.devLogEvents = false;
-    if(player.configuration.devLogEvents) console.log(data);
+    if(!player.configuration.devLogIncomingEvents) player.configuration.devLogIncomingEvents = false;
+    if(player.configuration.devLogIncomingEvents) console.log(data);
 });
