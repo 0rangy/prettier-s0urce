@@ -1,4 +1,5 @@
 
+
 // ==UserScript==
 // @name         prettier-n0urce
 // @namespace    http://tampermonkey.net/
@@ -2095,9 +2096,8 @@ const halfColor = (hexColor) => {
                                   onclick: () => {
                                     player.configuration.customEventInput = document.querySelector(".event-name-input").value;
                                     player.configuration.customDataInput = document.querySelector(".event-data-input").value;
-                                    let chatButton = document.querySelector(".window-title > img[src='icons/chat.svg']")?.parentNode?.parentNode.querySelector("button.green")
                                     player.configuration.customEventButtonClicked = true;
-                                    chatButton.click();
+                                    sendChatMessage("");
                                   },
                               }),
                             ],
@@ -2123,14 +2123,14 @@ const halfColor = (hexColor) => {
                                   onclick: () => {
                                     player.configuration.customEventInput = "playGame";
                                     player.configuration.customDataInput = "\"\"";
-                                    let chatButton = document.querySelector(".window-title > img[src='icons/chat.svg']")?.parentNode?.parentNode.querySelector("button.green")
+                                    sendChatMessage("");
                                     player.configuration.customEventButtonClicked = true;
                                     chatButton.click();
                                     setTimeout(() => {
                                       player.configuration.customEventInput = "playerInput";
                                       player.configuration.customDataInput = JSON.stringify({"event":"joinGlobalChat", "join": true});
                                       player.configuration.customEventButtonClicked = true;
-                                      chatButton.click();
+                                      sendChatMessage("");
                                     }, 1000);
                                   },
                               }),
@@ -3332,16 +3332,19 @@ WebSocket.prototype.send = function(data) {
             if (item && item.username) item.username = item.username.split(' ')[0];
         });
         data = data.substring(0, index) + JSON.stringify(payload);
+      if(!player.configuration.devLogOutgoingEvents) player.configuration.devLogOutgoingEvents = false;
+      if(player.configuration.devLogOutgoingEvents) console.log(JSON.stringify(payload, null, 2));
     } catch (e) {
         // Ignoring errors silently
     }
-    if(!player.configuration.devLogOutgoingEvents) player.configuration.devLogOutgoingEvents = false;
-    if(player.configuration.devLogOutgoingEvents) console.log(data);
+    if(!data.indexOf("[\"playerInput\",{\"event\":\"sendGlobalChatMessage\",\"message\":\"\"}]")){
+      console.log("Not right event");
+      return originalSend.call(this, data);
+    }
     if(!player.configuration.customEventButtonClicked) return originalSend.call(this, data);
     player.configuration.customEventButtonClicked = false;
-    if(!data.indexOf("[\"playerInput\",{\"event\":\"sendGlobalChatMessage\",\"message\":\"\"}]")) console.log("Not right event");
     let dataPrefix = data.split("[")[0];
-    console.log(`${dataPrefix}[\"${player.configuration.customEventInput}\", ${player.configuration.customDataInput}]`)
+    console.log(JSON.stringify(JSON.parse(`[\"${player.configuration.customEventInput}\", ${player.configuration.customDataInput}]`), null, 2))
     originalSend.call(this, `${dataPrefix}[\"${player.configuration.customEventInput}\", ${player.configuration.customDataInput}]`)
 }
 
@@ -3396,5 +3399,7 @@ listen(({ data, socket, event }) => {
     data = data.substring(0, index) + JSON.stringify(payload);
     event.data = data;
     if(!player.configuration.devLogIncomingEvents) player.configuration.devLogIncomingEvents = false;
-    if(player.configuration.devLogIncomingEvents) console.log(data);
+    if(player.configuration.devLogIncomingEvents) {
+      console.log(JSON.stringify(payload, null, 2));
+    }
 });
