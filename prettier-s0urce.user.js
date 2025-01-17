@@ -1552,14 +1552,14 @@ const halfColor = (hexColor) => {
                         style: { height: "auto", padding: "6px 14px", fontFamily: "var(--font-family-1)", fontSize: "16px", boxShadow: "0 10px 15px var(--color-shadow)" }
                     })
                 ],
-                onclick: async () => {
+                onclick: async (event) => {
                     for (let i = 0; i < 6; i++) {
                         let button = Array.from(isFilamentWindow.querySelectorAll("button.green")).filter(e => e.innerText == "Max")[i];
                         button?.click();
                         await sleep(100);
                     }
                     isAnyGreen = Array.from(isFilamentWindow.querySelectorAll("button.green:not(.cantClick)")).filter(e => e.innerText !== "Trade all").slice(1).length
-                    Array.from(isFilamentWindow.querySelectorAll("button.green")).filter(e => e.innerText === "Trade all")[0].classList = [`green svelte-ec9kqa ${isAnyGreen ? "can" : "cantClick"}`];
+                    event.target.classList = [`green svelte-ec9kqa ${isAnyGreen ? "can" : "cantClick"}`];
                 }
             })
 
